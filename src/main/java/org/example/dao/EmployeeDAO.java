@@ -14,7 +14,7 @@ public class EmployeeDAO {
     private static final String selectAllEmployees = " select * from employees " ;
     private static final String updateEmployee = "update employees set first_name = ?, last_name = ? where employee_id  = ?";
     private static final String deleteEmployee = "delete from employees where employee_id = ?";
-    private static final String select_Emp_hire_date = "select * from employees where hire_date = ?";
+    private static final String select_Emp_hire_date = "select * from employees where hire_date LIKE ? || '%'";
     private static final String select_Emp_job_id = "select * from employees where job_id = ?";
 
 
