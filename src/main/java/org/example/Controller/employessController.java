@@ -3,9 +3,14 @@ package org.example.Controller;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
 import org.example.dao.EmployeeDAO;
+import org.example.dto.EmployeeDto;
 import org.example.dto.employeeFilterDto;
+import org.example.exceptions.DataNotFoundException;
 import org.example.models.employees;
 
+
+import java.net.URI;
+import java.sql.SQLException;
 import java.util.ArrayList;
 @Path("/employees")
 public class employessController {
@@ -36,23 +41,42 @@ public class employessController {
     @GET
     @Path("{employee_id}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response selectEmployee(@PathParam("employee_id") int employee_id) {
+    public Response selectEmployee(@PathParam("employee_id") int employee_id)throws SQLException {
         try {
             employees emp = em.selectEmployee(employee_id);
+            if (emp == null) {
+                throw new DataNotFoundException(" Employee " + employee_id + " Not Found!!");
+            }
+
+            EmployeeDto dto = new EmployeeDto();
+            dto.setEmployee_id(emp.getEmployee_id());
+            dto.setFirst_name(emp.getFirst_name());
+            dto.setLast_name(emp.getLast_name());
+            dto.setEmail(emp.getEmail());
+            dto.setPhone_number(emp.getPhone_number());
+            dto.setHire_date(emp.getHire_date());
+            dto.setJob_id(emp.getJob_id());
+            dto.setSalary(emp.getSalary());
+            dto.setManager_id(emp.getManager_id());
+            dto.setDepartment_id(emp.getDepartment_id());
+            addLinks(dto);
+
             if(headers.getAcceptableMediaTypes().contains(MediaType.valueOf(MediaType.APPLICATION_XML))) {
                 return Response
-                        .ok(emp)
+                        .ok(dto)
                         .type(MediaType.APPLICATION_XML)
                         .build();
             }
+
             return Response
-                    .ok(emp, MediaType.APPLICATION_JSON)
+                    .ok(dto, MediaType.APPLICATION_JSON)
                     .build();
 
-        } catch (Exception e) {
+        } catch (ClassNotFoundException  e) {
             throw new RuntimeException(e);
         }
     }
+
 
     @DELETE
     @Path("{employee_id}")
@@ -86,6 +110,14 @@ public class employessController {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void addLinks (EmployeeDto dto){
+        URI selfUri = uriInfo.getAbsolutePath();
+        URI empsUri = uriInfo.getAbsolutePathBuilder().path(employessController.class).build();
+
+        dto.addLink(selfUri.toString(), "self");
+//        dto.addLink(empsUri.toString(),"emp");
     }
 
 //    @GET
